@@ -5,87 +5,82 @@
 
 using namespace std;
 
-// Підраховує кількість пар "SQ" або "QS", що не перекриваються (ітераційний спосіб)
-int CountPairs(const char* str)
+// Перевіряє, чи символи a і b утворюють пару "SQ" або "QS"
+bool IsPair(char a, char b)
 {
-    int k = 0;
-    size_t i = 0;
+    return (a == 'S' && b == 'Q') || (a == 'Q' && b == 'S');
+}
 
-    while (str[i] != 0 && str[i + 1] != 0)
-    {
-        if ((str[i] == 'S' && str[i + 1] == 'Q') ||
-            (str[i] == 'Q' && str[i + 1] == 'S'))
-        {
-            k++;
-            i += 2;
-        }
-        else
-            i++;
-    }
+// Підраховує кількість пар "SQ" або "QS", що не перекриваються (рекурсивно)
+int Count(const char* str, int i)
+{
+    if (str[i] == 0 || str[i + 1] == 0)
+        return 0;
 
-    return k;
+    if (IsPair(str[i], str[i + 1]))
+        return 1 + Count(str, i + 2);
+    else
+        return Count(str, i + 1);
 }
 
 // Перевіряє, чи є пара сусідніх букв "SQ" або "QS"
 bool HasPair(const char* str)
 {
-    return CountPairs(str) > 0;
+    return Count(str, 0) > 0;
 }
 
-// Замінює кожну пару "SQ" або "QS" на "***" 
-char* Change(const char* str)
+// Записує в dest змінений рядок: кожну пару "SQ" або "QS" замінює на "***"
+char* Change(char* dest, const char* str, char* t, int i)
 {
-    size_t len = strlen(str);
-
-    // кожна пара збільшує довжину на 1 символ (2 -> 3)
-    char* tmp = new char[len + CountPairs(str) + 1];
-    char* t = tmp;
-
-    tmp[0] = '\0';
-
-    size_t i = 0;
-    while (str[i] != 0)
+    if (str[i] == 0)
     {
-        if (str[i + 1] != 0 &&
-            ((str[i] == 'S' && str[i + 1] == 'Q') ||
-                (str[i] == 'Q' && str[i + 1] == 'S')))
-        {
-            *t++ = '*';
-            *t++ = '*';
-            *t++ = '*';
-            *t = '\0';
-            i += 2;
-        }
-        else
-        {
-            *t++ = str[i++];
-            *t = '\0';
-        }
+        *t = '\0';
+        return dest;
     }
 
-    return tmp;
+    if (IsPair(str[i], str[i + 1]))
+    {
+        *t++ = '*';
+        *t++ = '*';
+        *t++ = '*';
+        *t = '\0';
+        return Change(dest, str, t, i + 2);
+    }
+    else
+    {
+        *t++ = str[i];
+        *t = '\0';
+        return Change(dest, str, t, i + 1);
+    }
 }
 
 int main()
 {
     SetConsoleCP(65001);
     SetConsoleOutputCP(65001);
+
     char str[101];
 
-    cout << "Ведіть рядок:" << endl;
+    cout << "Введіть рядок:" << endl;
     cin.getline(str, 100);
 
     if (HasPair(str))
-        cout << "Рядок містить пару \"SQ\" або \"QS\"" << endl;
+        cout << "Рядок містить " << Count(str, 0) << " пар \"SQ\" або \"QS\"" << endl;
     else
-        cout << "Рядок не містить пари \"SQ\" або \"QS\"" << endl;
+        cout << "Рядок не містить пар \"SQ\" або \"QS\"" << endl;
 
-    char* dest = Change(str);
+    // кожна пара збільшує довжину на 1 символ (2 -> 3)
+    char* dest1 = new char[strlen(str) + Count(str, 0) + 1];
+    dest1[0] = '\0';
+
+    char* dest2;
+
+    dest2 = Change(dest1, str, dest1, 0);
 
     cout << "Змінений рядок (вхідний): " << str << endl;
-    cout << "Змінений рядок (результат): " << dest << endl;
+    cout << "Змінений рядок (результат): " << dest2 << endl;
 
-    delete[] dest;
+    delete[] dest1;
 
     return 0;
 }
